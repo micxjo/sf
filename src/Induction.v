@@ -283,3 +283,35 @@ Proof.
     repeat rewrite -> plus_assoc.
     reflexivity.
 Qed.
+
+Fixpoint nat_to_bin (n:nat) : bin :=
+  match n with
+    | O => Z
+    | S n' => bin_incr (nat_to_bin n')
+  end.
+
+Theorem nat_to_bin_to_nat :
+  forall n : nat, bin_to_nat (nat_to_bin n) = n.
+Proof.
+  intros n. induction n as [| n'].
+  Case "n = 0". reflexivity.
+  Case "n = S n'".
+    simpl.
+    rewrite -> bin_to_nat_pres_incr.
+    rewrite -> IHn'.
+    rewrite -> plus_comm.
+    reflexivity.
+Qed.
+
+Fixpoint normalize (b:bin) : bin :=
+  match b with
+    | Z => Z
+    | Twice b' => nat_to_bin (bin_to_nat b)
+    | STwice b' => nat_to_bin (bin_to_nat b)
+  end.
+
+Theorem bin_to_nat_to_bin :
+  forall b : bin, nat_to_bin (bin_to_nat b) = normalize b.
+Proof.
+  intros b. destruct b as [| b'| b'']; reflexivity.
+Qed.
