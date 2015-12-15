@@ -198,7 +198,7 @@ Proof.
   intros n. reflexivity.
 Qed.
 
-Theorem mult_0_l : forall n : nat, 0 * n = 0.
+Theorem mult_O_l : forall n : nat, 0 * n = 0.
 Proof.
   intros n. reflexivity.
 Qed.
@@ -250,7 +250,7 @@ Proof.
     reflexivity.
 Qed.
 
-Theorem neqb_involutive : forall b : bool,
+Theorem negb_involutive : forall b : bool,
                             negb (negb b) = b.
 Proof.
   intros b. destruct b.
