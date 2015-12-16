@@ -1,4 +1,4 @@
-MODULES := Basics Utils Induction
+MODULES := Basics Utils Induction Lists
 VS      := $(MODULES:%=src/%.v)
 
 .PHONY: coq clean
