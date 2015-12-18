@@ -4,5 +4,8 @@ addons:
   apt:
     packages:
       - coq
+      - ocaml-nox
+      - ocaml-native-compilers
+      - camlp5
 
 script: make coq
