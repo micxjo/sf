@@ -310,3 +310,119 @@ Proof. reflexivity. Qed.
 
 Example fold_example3 : fold app [[1];[];[2;3];[4]] [] = [1;2;3;4].
 Proof. reflexivity. Qed.
+
+Definition constfun {X:Type} (x:X) : nat -> X :=
+  fun (k:nat) => x.
+
+Definition ftrue := constfun true.
+Definition ffalse := constfun false.
+
+Definition override {X:Type} (f:nat->X) (k:nat) (x:X) : nat -> X :=
+  fun (k':nat) => if beq_nat k k' then x else f k'.
+
+Theorem override_example : forall (b:bool),
+                             (override (constfun b) 3 true) 2 = b.
+Proof.
+  intros b; destruct b; reflexivity.
+Qed.
+
+Theorem override_eq :
+  forall {X:Type} x k (f:nat->X),
+    (override f k x) k = x.
+Proof.
+  intros X x k f.
+  unfold override.
+  rewrite <- beq_nat_refl.
+  reflexivity.
+Qed.
+
+Theorem override_neq :
+  forall (X:Type) x1 x2 k1 k2 (f:nat->X),
+    f k1 = x1 ->
+    beq_nat k2 k1 = false ->
+    (override f k2 x2) k1 = x1.
+Proof.
+  intros X x1 x2 k1 k2 f H1 H2.
+  unfold override.
+  rewrite -> H2.
+  rewrite -> H1.
+  reflexivity.
+Qed.
+
+Definition fold_length {X:Type} (l:list X) : nat :=
+  fold (fun _ n => S n) l 0.
+
+Theorem fold_length_correct : forall X (l:list X),
+                                fold_length l = length l.
+Proof.
+  intros X l. induction l as [| x l'].
+  Case "l = []".
+    reflexivity.
+  Case "l = x :: l'".
+    simpl.
+    rewrite <- IHl'.
+    reflexivity.
+Qed.
+
+Definition fold_map {X Y:Type} (f:X->Y) (l:list X) : list Y :=
+  fold (fun x acc => f x :: acc) l [].
+
+Theorem fold_map_correct :
+  forall X Y (f:X->Y) (l:list X),
+    fold_map f l = map f l.
+Proof.
+  intros X Y f l. induction l as [| x l'].
+  Case "l = []". reflexivity.
+  Case "l = x :: l'".
+    simpl.
+    rewrite <- IHl'.
+    reflexivity.
+Qed.
+
+Module Church.
+
+  Definition nat := forall X : Type, (X -> X) -> X -> X.
+
+  Definition one : nat :=
+    fun (X:Type) (f:X->X) (x:X) => f x.
+
+  Definition two : nat :=
+    fun (X:Type) (f:X->X) (x:X) => f (f x).
+
+  Definition three : nat :=
+    fun (X:Type) (f:X->X) (x:X) => f (f (f x)).
+
+  Definition zero : nat :=
+    fun (X:Type) (f:X->X) (x:X) => x.
+
+  Definition succ (n:nat) : nat :=
+    fun (X:Type) (f:X->X) (x:X) => f (n X f x).
+
+  Example succ_1 : succ zero = one.
+  Proof. reflexivity. Qed.
+  Example succ_2 : succ one = two.
+  Proof. reflexivity. Qed.
+  Example succ_3 : succ two = three.
+  Proof. reflexivity. Qed.
+
+  Definition plus (n m : nat) : nat :=
+    fun (X:Type) (f:X->X) (x:X) => m X f (n X f x).
+
+  Example plus_1 : plus zero one = one.
+  Proof. reflexivity. Qed.
+  Example plus_2 : plus two three = plus three two.
+  Proof. reflexivity. Qed.
+  Example plus_3 : plus (plus two two) three = plus one (plus three three).
+  Proof. reflexivity. Qed.
+
+  Definition mult (n m : nat) : nat :=
+    fun (X:Type) (f:X->X) (x:X) => m X (n X f) x.
+
+  Example mult_1 : mult one one = one.
+  Proof. reflexivity. Qed.
+  Example mult_2 : mult zero (plus three three) = zero.
+  Proof. reflexivity. Qed.
+  Example mult_3 : mult two three = plus three three.
+  Proof. reflexivity. Qed.
+
+End Church.
