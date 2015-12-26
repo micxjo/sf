@@ -144,3 +144,159 @@ Proof.
       rewrite H1.
       reflexivity.
 Qed.
+
+Theorem double_injective : forall n m,
+                             double n = double m ->
+                             n = m.
+Proof.
+  intros n. induction n as [|n'].
+  Case "n = 0".
+    simpl.
+    intros m H. destruct m as [|m'].
+    SCase "m = 0". reflexivity.
+    SCase "m = S m'". inversion H.
+  Case "n = S n'".
+    intros m H.
+    destruct m as [|m'].
+    SCase "m = 0". inversion H.
+    SCase "m = S m'".
+      apply f_equal.
+      apply IHn'.
+      inversion H.
+      reflexivity.
+Qed.
+
+Theorem beq_nat_true : forall n m,
+                         beq_nat n m = true -> n = m.
+Proof.
+  intros n. induction n as [|n'].
+  Case "n = 0".
+    intros m H. destruct m as [|m'].
+    SCase "m = 0". reflexivity.
+    SCase "m = S m'". inversion H.
+  Case "n = S n'".
+    intros m H. destruct m as [|m'].
+    SCase "m = 0". inversion H.
+    SCase "m = S m'".
+      inversion H.
+      apply IHn' in H1.
+      apply f_equal.
+      inversion H1.
+      reflexivity.
+Qed.
+
+Theorem double_injective_take2 : forall n m,
+                                   double n = double m ->
+                                   n = m.
+Proof.
+  intros n m.
+  generalize dependent n.
+  induction m as [|m'].
+  Case "m = 0".
+    simpl.
+    intros n H. destruct n as [|n'].
+    SCase "n = 0". reflexivity.
+    SCase "n = S n'". inversion H.
+  Case "m = S m'".
+    intros n H. destruct n as [|n'].
+    SCase "n = 0". inversion H.
+    SCase "n = S n'".
+      apply f_equal.
+      apply IHm'.
+      inversion H.
+      reflexivity.
+Qed.
+
+Theorem length_snoc' : forall (X:Type) (v:X) (l:list X) (n:nat),
+                         length l = n ->
+                         length (snoc l v) = S n.
+Proof.
+  intros X v l. induction l as [|v' l'].
+  Case "l = []".
+    intros n H.
+    rewrite <- H.
+    reflexivity.
+  Case "l = v' :: l'".
+    intros n H.
+    simpl.
+    destruct n as [|n'].
+    SCase "n = 0". inversion H.
+    SCase "n = S n'".
+      apply f_equal.
+      apply IHl'.
+      inversion H.
+      reflexivity.
+Qed.
+
+Theorem index_after_last : forall (n:nat) (X:Type) (l:list X),
+                             length l = n ->
+                             index n l = None.
+Proof.
+  intros n X l.
+  generalize dependent n.
+  induction l as [| x l'].
+  Case "l = []". reflexivity.
+  Case "l = x :: l'".
+    intros n eq.
+    destruct n as [|n'].
+    SCase "n = 0". simpl. inversion eq.
+    SCase "n = S n'".
+      simpl.
+      apply IHl'.
+      inversion eq.
+      reflexivity.
+Qed.
+
+Theorem length_snoc'' : forall (n:nat) (X:Type) (v:X) (l:list X),
+                          length l = n ->
+                          length (snoc l v) = S n.
+Proof.
+  intros n X v l.
+  generalize dependent n.
+  induction l as [|x l'].
+  Case "l = []".
+    intros n eq.
+    simpl.
+    destruct n as [|n'].
+    SCase "n = 0". reflexivity.
+    SCase "n = S n'". inversion eq.
+  Case "l = x :: l'".
+    intros n eq.
+    destruct n as [|n'].
+    SCase "n = 0". inversion eq.
+    SCase "n = S n'".
+      simpl.
+      apply f_equal.
+      rewrite <- IHl'.
+      reflexivity.
+      inversion eq.
+      reflexivity.
+Qed.
+
+Theorem app_length_cons : forall (X:Type) (l1 l2 : list X) (x:X) (n:nat),
+                            length (l1 ++ (x :: l2)) = n ->
+                            S (length (l1 ++ l2)) = n.
+Proof.
+  intros X l1 l2 x n eq.
+  generalize dependent n.
+  generalize dependent l2.
+  induction l1 as [|x' l1'].
+  Case "l1 = []".
+    intros n l2 eq.
+    simpl.
+    destruct n as [|n'].
+    SCase "n = 0". inversion eq. reflexivity.
+    SCase "n = S n'".
+      simpl.
+      apply eq.
+  Case "l1 = x :: l1'".
+    intros l2 n eq.
+    destruct n as [|n'].
+    SCase "n = 0". inversion eq.
+    SCase "n = S n'".
+      simpl.
+      apply f_equal.
+      apply IHl1'.
+      inversion eq.
+      reflexivity.
+Qed.
