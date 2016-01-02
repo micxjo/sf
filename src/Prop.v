@@ -126,3 +126,172 @@ Proof.
     apply g_plus5.
     apply IHGn.
 Qed.
+
+Theorem beautiful__gorgeous : forall n, beautiful n -> gorgeous n.
+Proof.
+  intros n B.
+  induction B.
+  Case "b_0".
+    apply g_0.
+  Case "b_3".
+    apply g_plus3.
+    apply g_0.
+  Case "b_5".
+    apply g_plus5.
+    apply g_0.
+  Case "b_sum".
+    apply gorgeous_sum.
+    apply IHB1.
+    apply IHB2.
+Qed.
+
+Lemma helper_g_times2 : forall x y z, x + (z + y) = z + x + y.
+Proof.
+  intros x y z.
+  rewrite -> (plus_comm z x).
+  rewrite -> plus_assoc.
+  reflexivity.
+Qed.
+
+Theorem g_times2 : forall n, gorgeous n -> gorgeous (2 * n).
+Proof.
+  intros n H.
+  simpl.
+  induction H.
+  Case "g_0".
+    simpl.
+    apply g_0.
+  Case "g_plus3".
+    rewrite -> plus_O_r.
+    rewrite -> helper_g_times2.
+    simpl.
+    apply g_plus3.
+    apply g_plus3.
+    rewrite -> plus_O_r in IHgorgeous.
+    apply IHgorgeous.
+  Case "g_plus5".
+    rewrite -> plus_O_r.
+    rewrite -> helper_g_times2.
+    simpl.
+    apply g_plus5.
+    apply g_plus5.
+    rewrite -> plus_O_r in IHgorgeous.
+    apply IHgorgeous.
+Qed.
+
+Theorem ev__even : forall n,
+                     ev n -> even n.
+Proof.
+  intros n E. induction E as [|n' E'].
+  Case "ev_0".
+    reflexivity.
+  Case "ev_SS n' E'".
+    apply IHE'.
+Qed.
+
+Theorem ev_sum : forall n m,
+                   ev n -> ev m -> ev (n + m).
+Proof.
+  intros n m En Em.
+  induction En.
+  Case "e_0".
+    simpl.
+    apply Em.
+  Case "e_SS".
+    simpl.
+    apply ev_SS.
+    apply IHEn.
+Qed.
+
+Theorem ev_minus2 : forall n, ev n -> ev (pred (pred n)).
+Proof.
+  intros n E.
+  inversion E as [|n' E'].
+  Case "ev_0". simpl. apply ev_0.
+  Case "eb_SS n' E'". simpl. apply E'.
+Qed.
+
+Theorem SSev__even : forall n,
+                       ev (S (S n)) -> ev n.
+Proof.
+  intros n E.
+  inversion E as [|n' E'].
+  apply E'.
+Qed.
+
+Theorem SSSSev__even : forall n,
+                         ev (S (S (S (S n)))) -> ev n.
+Proof.
+  intros n E.
+  inversion E as [|n' E'].
+  apply SSev__even in E'.
+  apply E'.
+Qed.
+
+Theorem even5_nonsense :
+  ev 5 -> 2 + 2 = 9.
+Proof.
+  intros E.
+  inversion E.
+  inversion H0.
+  inversion H2.
+Qed.
+
+Theorem ev_ev__ev : forall n m,
+                      ev (n + m) -> ev n -> ev m.
+Proof.
+  intros n m Enm En.
+  generalize dependent Enm.
+  induction En.
+  Case "ev (0 + m)".
+  intros Enm.
+  simpl in Enm.
+  apply Enm.
+  Case "ev ((S (S n)) + m)".
+  intros Enm.
+  inversion Enm.
+  apply IHEn in H0.
+  apply H0.
+Qed.
+
+Inductive ev_list {X:Type} : list X -> Prop :=
+| el_nil : ev_list []
+| el_cc : forall x y l, ev_list l -> ev_list (x :: y :: l).
+
+Lemma ev_list__ev_length : forall X (l:list X),
+                             ev_list l -> ev (length l).
+Proof.
+  intros X l H. induction H.
+  Case "el_nil". simpl. apply ev_0.
+  Case "el_cc".
+    simpl.
+    apply ev_SS.
+    apply IHev_list.
+Qed.
+
+Lemma ev_length__ev_list :
+  forall X n,
+    ev n -> forall (l:list X), n = length l -> ev_list l.
+Proof.
+  intros X n H.
+  induction H.
+  Case "ev_0".
+    intros l H.
+    destruct l.
+    SCase "[]". apply el_nil.
+    SCase "x :: l". inversion H.
+  Case "ev_SS".
+    intros l H2.
+    destruct l.
+    SCase "[]".
+      inversion H2.
+      destruct l.
+    SCase "[x]".
+      inversion H2.
+      destruct l.
+    SCase "x :: x0 :: l".
+      apply el_cc.
+      apply IHev.
+      inversion H2.
+      reflexivity.
+Qed.
