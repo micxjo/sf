@@ -269,29 +269,56 @@ Proof.
     apply IHev_list.
 Qed.
 
-Lemma ev_length__ev_list :
-  forall X n,
-    ev n -> forall (l:list X), n = length l -> ev_list l.
+Inductive pal {X:Type} : list X -> Prop :=
+| pal_e : pal []
+| pal_x : forall x, pal [x]
+| pal_xpx : forall x p, pal p -> pal ((x :: p) ++ [x]).
+
+Inductive le : nat -> nat -> Prop :=
+| le_n : forall n, le n n
+| le_S : forall n m, (le n m) -> (le n (S m)).
+
+Notation "m <= n" := (le m n).
+
+Theorem test_le1 : 3 <= 3.
+Proof. apply le_n. Qed.
+Theorem test_le2 : 3 <= 6.
+Proof. apply le_S. apply le_S. apply le_S. apply le_n. Qed.
+Theorem test_le3 : (2 <= 1) -> 2 + 2 = 5.
+Proof. intros H. inversion H. inversion H2. Qed.
+
+Definition lt (n m : nat) := le (S n) m.
+
+Notation "m < n" := (lt m n).
+
+Inductive square_of : nat -> nat -> Prop :=
+  sq : forall (n:nat), square_of n (n * n).
+
+Inductive next_nat : nat -> nat -> Prop :=
+| nn : forall (n:nat), next_nat n (S n).
+
+Inductive next_even : nat -> nat -> Prop :=
+| ne_1 : forall n, ev (S n) -> next_even n (S n)
+| ne_2 : forall n, ev (S (S n)) -> next_even n (S (S n)).
+
+Lemma le_trans : forall m n o, m <= n -> n <= o -> m <= o.
 Proof.
-  intros X n H.
-  induction H.
-  Case "ev_0".
-    intros l H.
-    destruct l.
-    SCase "[]". apply el_nil.
-    SCase "x :: l". inversion H.
-  Case "ev_SS".
-    intros l H2.
-    destruct l.
-    SCase "[]".
-      inversion H2.
-      destruct l.
-    SCase "[x]".
-      inversion H2.
-      destruct l.
-    SCase "x :: x0 :: l".
-      apply el_cc.
-      apply IHev.
-      inversion H2.
-      reflexivity.
+  intros m n o Hmn Hno.
+  induction Hno.
+  apply Hmn.
+  apply le_S.
+  apply IHHno.
+  apply Hmn.
+Qed.
+
+Theorem O_le_n : forall n,
+                   0 <= n.
+Proof.
+  intros n.
+  induction n as [|n'].
+  Case "n = 0".
+    apply le_n.
+  Case "n = S n'".
+    apply le_S.
+    apply IHn'.
 Qed.
