@@ -322,3 +322,134 @@ Proof.
     apply le_S.
     apply IHn'.
 Qed.
+
+Theorem n_le_m__Sn_le_Sm : forall n m,
+                             n <= m -> S n <= S m.
+Proof.
+  intros n m H. induction H.
+  Case "le_n". apply le_n.
+  Case "le_S".
+    apply le_S.
+    apply IHle.
+Qed.
+
+Theorem Sn_le_Sm__n_le_m : forall n m,
+                             S n <= S m -> n <= m.
+Proof.
+  intros n m H. inversion H.
+  apply le_n.
+  apply le_trans with (n := S n).
+  apply le_S.
+  apply le_n.
+  apply H2.
+Qed.
+
+Theorem le_plus_l : forall a b,
+                      a <= a + b.
+Proof.
+  intros a b. induction a as [|a'].
+  Case "a = 0". apply O_le_n.
+  Case "a = S a'".
+    simpl.
+    apply n_le_m__Sn_le_Sm.
+    apply IHa'.
+Qed.
+
+Theorem plus_lt : forall n1 n2 m,
+                    n1 + n2 < m ->
+                    n1 < m /\ n2 < m.
+Proof.
+  intros n1 n2 m.
+  unfold lt.
+  intros H.
+  split.
+  apply le_trans with (n := S (n1 + n2)).
+  rewrite -> plus_comm.
+  rewrite plus_n_Sm.
+  rewrite plus_comm.
+  apply le_plus_l.
+  apply H.
+  apply le_trans with (n := S (n1 + n2)).
+  rewrite plus_n_Sm.
+  rewrite -> plus_comm.
+  apply le_plus_l.
+  apply H.
+Qed.
+
+Theorem lt_S : forall n m,
+               n < m ->
+               n < S m.
+Proof.
+  intros n m.
+  unfold lt.
+  intros H.
+  apply le_S.
+  apply H.
+Qed.
+
+Theorem ble_nat_true : forall n m,
+                         ble_nat n m = true ->
+                         n <= m.
+Proof.
+  intros n. induction n as [|n'].
+  Case "n = 0".
+    intros m H.
+    apply O_le_n.
+  Case "n = S n'".
+    intros m H.
+    destruct m as [| m'].
+    SCase "m = 0". inversion H.
+    SCase "m = S m'".
+      apply n_le_m__Sn_le_Sm.
+      apply IHn'.
+      apply H.
+Qed.
+
+Theorem le_ble_nat : forall n m,
+                       n <= m ->
+                       ble_nat n m = true.
+Proof.
+  intros n m.
+  generalize dependent n.
+  induction m as [|m'].
+  Case "m = 0".
+    intros n H.
+    inversion H.
+    reflexivity.
+  Case "m = S m'".
+    intros n H.
+    inversion H.
+    symmetry.
+    apply ble_nat_refl.
+    destruct n as [|n'].
+    SCase "n = 0". reflexivity.
+    SCase "n = S n'".
+      simpl.
+      apply IHm'.
+      apply Sn_le_Sm__n_le_m.
+      apply H.
+Qed.
+
+Theorem ble_nat_true_trans :
+  forall n m o,
+    ble_nat n m = true -> ble_nat m o = true -> ble_nat n o = true.
+Proof.
+  intros n m o H1 H2.
+  apply le_ble_nat.
+  apply ble_nat_true in H1.
+  apply ble_nat_true in H2.
+  apply le_trans with (n := m).
+  apply H1.
+  apply H2.
+Qed.
+
+Theorem ble_nat_false : forall n m,
+                          ble_nat n m = false -> ~(n <= m).
+Proof.
+  intros n m H1.
+  unfold not.
+  intros H2.
+  apply le_ble_nat in H2.
+  rewrite H1 in H2.
+  inversion H2.
+Qed.
