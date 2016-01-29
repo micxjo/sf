@@ -453,3 +453,47 @@ Proof.
   rewrite H1 in H2.
   inversion H2.
 Qed.
+
+Definition combine_odd_even (Podd Peven : nat -> Prop) : nat -> Prop :=
+  fun n => if oddb n then Podd n else Peven n.
+
+Theorem combine_odd_even_intro :
+  forall (Podd Peven : nat -> Prop) (n : nat),
+    (oddb n = true -> Podd n) ->
+    (oddb n = false -> Peven n) ->
+    combine_odd_even Podd Peven n.
+Proof.
+  intros Podd Peven n H1 H2.
+  unfold combine_odd_even.
+  destruct (oddb n).
+  Case "oddb n = true".
+    apply H1.
+    reflexivity.
+  Case "oddb n = false".
+    apply H2.
+    reflexivity.
+Qed.
+
+Theorem combine_odd_even_elim_odd :
+  forall (Podd Peven : nat -> Prop) (n : nat),
+    combine_odd_even Podd Peven n ->
+    oddb n = true ->
+    Podd n.
+Proof.
+  intros Podd Peven n H1 H2.
+  unfold combine_odd_even in H1.
+  rewrite -> H2 in H1.
+  apply H1.
+Qed.
+
+Theorem combine_odd_even_elim_even :
+  forall (Podd Peven : nat -> Prop) (n : nat),
+    combine_odd_even Podd Peven n ->
+    oddb n = false ->
+    Peven n.
+Proof.
+  intros Podd Peven n H1 H2.
+  unfold combine_odd_even in H1.
+  rewrite -> H2 in H1.
+  apply H1.
+Qed.
