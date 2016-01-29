@@ -1,4 +1,4 @@
-MODULES := Basics Utils Induction Lists Poly MoreCoq Logic Prop
+MODULES := Basics Utils Induction Lists Poly MoreCoq Logic Prop MoreLogic
 VS      := $(MODULES:%=src/%.v)
 
 .PHONY: coq clean
