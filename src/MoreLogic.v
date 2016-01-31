@@ -82,3 +82,111 @@ Proof.
   right.
   apply Hx.
 Qed.
+
+Inductive sumbool (A B : Prop) : Set :=
+| left : A -> sumbool A B
+| right : B -> sumbool A B.
+
+Notation "{ A } + { B }" := (sumbool A B) : type_scope.
+
+Theorem eq_nat_dec : forall n m : nat, {n = m} + {n <> m}.
+Proof.
+  intros n.
+  induction n as [|n'].
+  Case "n = 0".
+    intros m.
+    destruct m as [|m'].
+    SCase "m = 0".
+      left.
+      reflexivity.
+    SCase "m = S m'".
+      right.
+      intros contra.
+      inversion contra.
+  Case "n = S n'".
+    intros m.
+    destruct m as [|m'].
+    SCase "m = 0".
+      right.
+      intros contra.
+      inversion contra.
+    SCase "m = S m'".
+      destruct IHn' with (m:=m') as [eq|neq].
+      left.
+      apply f_equal.
+      apply eq.
+      right.
+      intros Heq.
+      inversion Heq as [Heq'].
+      apply neq.
+      apply Heq'.
+Defined.
+
+Definition override' {X:Type} (f:nat->X) (k:nat) (x:X) : nat->X :=
+  fun (k':nat) => if eq_nat_dec k k' then x else f k'.
+
+Theorem override_same' : forall (X:Type) x1 k1 k2 (f:nat->X),
+                           f k1 = x1 ->
+                           (override' f k1 x1) k2 = f k2.
+Proof.
+  intros X x1 k1 k2 f Hx1.
+  unfold override'.
+  destruct (eq_nat_dec k1 k2).
+  Case "k1 = k2".
+    rewrite <- e.
+    symmetry.
+    apply Hx1.
+  Case "k1 <> k2".
+    reflexivity.
+Qed.
+
+Theorem override_shadow' :
+  forall (X:Type) x1 x2 k1 k2 (f:nat->X),
+    (override' (override' f k1 x2) k1 x1) k2 = (override' f k1 x1) k2.
+Proof.
+  intros X x1 x2 k1 k2 f.
+  unfold override'.
+  destruct (eq_nat_dec k1 k2).
+  Case "k1 = k2".
+    reflexivity.
+  Case "k1 <> k2".
+    reflexivity.
+Qed.
+
+Inductive all (X:Type) (P:X->Prop) : list X -> Prop :=
+| all_nil : all X P nil
+| all_cons : forall x l, P x -> all X P l -> all X P (x :: l).
+
+Fixpoint forallb {X:Type} (test:X->bool) (l:list X) : bool :=
+  match l with
+    | [] => true
+    | x :: l' => andb (test x) (forallb test l')
+  end.
+
+Theorem forallb_all : forall (X:Type) (f:X->bool) (l:list X),
+                        all X (fun x => f x = true) l <-> forallb f l = true.
+Proof.
+  intros X f l.
+  split.
+  Case "->".
+    intros H.
+    induction H.
+    reflexivity.
+    simpl.
+    rewrite -> IHall.
+    rewrite -> H.
+    reflexivity.
+  Case "<-".
+    intros H.
+    induction l as [|x l'].
+    SCase "l = []".
+      apply all_nil.
+    SCase "l = x :: l'".
+      simpl in H.
+      apply all_cons.
+      apply andb_true_elim1 in H.
+      apply H.
+      apply IHl'.
+      apply andb_true_elim2 in H.
+      apply H.
+Qed.
