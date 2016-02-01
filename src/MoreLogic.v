@@ -190,3 +190,34 @@ Proof.
       apply andb_true_elim2 in H.
       apply H.
 Qed.
+
+Inductive nostutter: list nat -> Prop :=
+| ns_nil : nostutter []
+| ns_one : forall x, nostutter [x]
+| ns_two : forall x1 x2 l, x1 <> x2 ->
+                           nostutter (x2 :: l) ->
+                           nostutter (x1 :: x2 :: l).
+
+Example test_nostutter_1: nostutter [3;1;4;1;5;6].
+Proof.
+  repeat constructor; apply beq_nat_false; auto.
+Qed.
+
+Example test_nostutter_2: nostutter [].
+Proof.
+  repeat constructor; apply beq_nat_false; auto.
+Qed.
+
+Example test_nostutter_3: nostutter [5].
+Proof.
+  repeat constructor; apply beq_nat_false; auto.
+Qed.
+
+Example test_nostutter_4: not (nostutter [3;1;1;4]).
+Proof.
+  intro.
+  repeat match goal with
+             h: nostutter _ |- _ => inversion h; clear h; subst
+         end.
+  contradiction H1; auto.
+Qed.
